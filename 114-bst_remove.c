@@ -1,40 +1,15 @@
 #include "binary_trees.h"
 
 /**
- * bst_min_val - Finds the smallest node in a subtree
- * @root: Pointer to the root of the subtree
- * Return: Pointer to the node with the minimum value
+ * bst_min - Finds the smallest node in a BST
+ * @root: Pointer to the root of the tree
+ * Return: Pointer to the minimum node
  */
-bst_t *bst_min_val(bst_t *root)
+bst_t *bst_min(bst_t *root)
 {
 	while (root && root->left)
 		root = root->left;
 	return (root);
-}
-
-/**
- * bst_delete_node - Handles the actual removal of a node
- * @node: Pointer to the node to delete
- * Return: Pointer to the new child that replaces the deleted node
- */
-bst_t *bst_delete_node(bst_t *node)
-{
-	bst_t *parent = node->parent, *successor, *replacement = NULL;
-
-	if (node->left && node->right)
-	{
-		successor = bst_min_val(node->right);
-		node->n = successor->n;
-		return (bst_remove(node->right, successor->n));
-	}
-	if (node->left)
-		replacement = node->left;
-	else if (node->right)
-		replacement = node->right;
-	if (replacement)
-		replacement->parent = parent;
-	free(node);
-	return (replacement);
 }
 
 /**
@@ -45,20 +20,39 @@ bst_t *bst_delete_node(bst_t *node)
  */
 bst_t *bst_remove(bst_t *root, int value)
 {
-	if (!root)
+	bst_t *temp, *successor;
+
+	if (root == NULL)
 		return (NULL);
+
 	if (value < root->n)
 		root->left = bst_remove(root->left, value);
 	else if (value > root->n)
 		root->right = bst_remove(root->right, value);
 	else
 	{
-		if (!root->left && !root->right)
+		/* Case 1 & 2: No child or only one child */
+		if (root->left == NULL)
 		{
+			temp = root->right;
+			if (temp)
+				temp->parent = root->parent;
 			free(root);
-			return (NULL);
+			return (temp);
 		}
-		return (bst_delete_node(root));
+		else if (root->right == NULL)
+		{
+			temp = root->left;
+			if (temp)
+				temp->parent = root->parent;
+			free(root);
+			return (temp);
+		}
+
+		/* Case 3: Two children */
+		successor = bst_min(root->right);
+		root->n = successor->n;
+		root->right = bst_remove(root->right, successor->n);
 	}
 	return (root);
 }
